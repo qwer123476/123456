@@ -1,6 +1,4 @@
--- ==========================================================
--- [보안 최우선] 특정 유저 ID 화이트리스트 및 차단/킥 스크립트
--- ==========================================================
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
