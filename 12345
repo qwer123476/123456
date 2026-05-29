@@ -4,21 +4,21 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
--- 허용된 유저 ID 목록 (지정하신 두 계정)
+
 local AllowedUsers = {
     [2932138780] = true,
     [10472996475] = true
 }
 
--- 현재 실행한 유저의 ID가 화이트리스트에 없는 경우
+
 if not AllowedUsers[LocalPlayer.UserId] then
-    -- 1. 유저 화면에 킥 메시지를 띄우며 강제 퇴장 처리
+
     LocalPlayer:Kick("\n[보안 시스템 넌 뭐야 씨발]\n이 스크립트를 실행할 권한이 없습니다.\n허가되지 않은 사용자입니다.")
     
-    -- 2. 후속 스크립트 코드가 백그라운드에서 실행되는 것을 완전히 차단 (메모리 강제 종료)
+    
     task.wait(0.5)
     while true do 
-        -- 혹시라도 킥이 지연될 경우를 대비해 스크립트 완전 먹통화
+    
         error("Unauthorized User - Script Terminated") 
     end
 end
