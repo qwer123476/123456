@@ -11,7 +11,7 @@ local AllowedUsers = {
 
 if not AllowedUsers[LocalPlayer.UserId] then
 
-    LocalPlayer:Kick("\n[보안 시스템 넌 뭐야 씨발]\n이 스크립트를 실행할 권한이 없습니다.\n허가되지 않은 사용자입니다.")
+    LocalPlayer:Kick("\n[Fuck, get out, you idiot. ]\n not.\n get out.")
     
     
     task.wait(0.5)
@@ -20,15 +20,9 @@ if not AllowedUsers[LocalPlayer.UserId] then
         error("Unauthorized User - Script Terminated") 
     end
 end
--- ==========================================================
-
--- ==========================================================
--- [보안 패시브] 외부 정보 유출 및 악성 로거 차단 스크립트
--- ==========================================================
 task.spawn(function()
     local HttpService = game:GetService("HttpService")
     
-    -- 안전한 공식 API 및 신뢰할 수 있는 도메인 화이트리스트 설정
     local AllowedDomains = {
         "roblox.com",
         "githubusercontent.com",
@@ -36,17 +30,17 @@ task.spawn(function()
         "pastebin.com"
     }
 
-    -- URL이 안전한 도메인인지 검증하는 함수
+    
     local function isSafeUrl(url)
         if not url then return false end
         local lowerUrl = string.lower(url)
         
-        -- 디스코드 웹훅(Discord Webhook)을 통한 로그 전송은 무조건 차단
+        
         if string.find(lowerUrl, "discord.com/api/webhooks") or string.find(lowerUrl, "hooks.slack.com") then
             return false
         end
         
-        -- 화이트리스트 도메인 포함 여부 확인
+        
         for _, domain in pairs(AllowedDomains) do
             if string.find(lowerUrl, domain) then
                 return true
@@ -55,12 +49,12 @@ task.spawn(function()
         return false
     end
 
-    -- HttpService의 핵심 전송 메소드(PostAsync, RequestAsync 등)를 변조(Hooking)하여 차단
+    
     local oldPostAsync
     oldPostAsync = hookfunction(HttpService.PostAsync, function(self, url, data, ...)
         if not isSafeUrl(url) then
-            warn("[보안 경고] 허가되지 않은 도메인으로의 데이터 전송이 차단되었습니다: " .. tostring(url))
-            return nil -- 전송을 수행하지 않고 빈 값 반환
+            warn("[security alert] Data transfer to unauthorized domains has been blocked.: " .. tostring(url))
+            return nil 
         end
         return oldPostAsync(self, url, data, ...)
     end)
@@ -69,14 +63,14 @@ task.spawn(function()
     oldRequestAsync = hookfunction(HttpService.RequestAsync, function(self, requestOptions, ...)
         if requestOptions and requestOptions.Url then
             if not isSafeUrl(requestOptions.Url) then
-                warn("[보안 경고] 허가되지 않은 도메인으로의 HTTP 요청이 차단되었습니다: " .. tostring(requestOptions.Url))
+                warn("[warning] Data transfer to unauthorized domains has been blocked.: " .. tostring(requestOptions.Url))
                 return {StatusCode = 403, Body = "Blocked by Security Script", Success = false}
             end
         end
         return oldRequestAsync(self, requestOptions, ...)
     end)
 
-    print("[Security Master] 악성 로거 및 웹훅 차단 엔진이 활성화되었습니다.")
+    print("[Security Master] Malicious logger and web hook blocking engines have been activated..")
 end)
 task.spawn(function()
 
@@ -148,7 +142,7 @@ task.spawn(function()
     AlertLabel.Size = UDim2.new(0, 200, 0, 35)
     AlertLabel.Position = UDim2.new(0, 20, 0, 5)
     AlertLabel.BackgroundTransparency = 1
-    AlertLabel.Text = "알림!"
+    AlertLabel.Text = "Notification!"
     AlertLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
     AlertLabel.TextSize = 22
     AlertLabel.Font = Enum.Font.GothamBold
@@ -265,10 +259,11 @@ task.spawn(function()
     }):Play()
 
     local Sentences = {
-        "축하합니다 당신은 스크립트를쓸 자격이 있습니다",
-        "아직알파 단계 이며 오류가많아요",
-        "모바일은 적용안되는거도있어요",
-        "재밌게 플레이 하세요 :)"
+        "Congratulations, you deserve to write the script.
+"It's still in the alpha stage and has many errors."
+"There are also things that don't apply to mobile."
+
+Have fun playing. :)"
     }
 
     local currentIdx = 1
@@ -436,691 +431,6 @@ task.spawn(function()
         ):Play()
     end)
 end)
-local TweenService = game:GetService("TweenService")
-local Lighting = game:GetService("Lighting")
-local Players = game:GetService("Players")
-local SoundService = game:GetService("SoundService")
-local localPlayer = Players.LocalPlayer
-local playerGui = localPlayer:WaitForChild("PlayerGui")
 
-local isCutscenePlaying = false
-local rainbowActive = false
-local currentSound = nil
-local introSound = nil -- [추가] 암전 상태 전용 오디오 변수
-local lightingTweens = {}
-local activeScreenGui = nil
-local isSkipped = false
-local originalSkybox = {}
-
--- [추가] 컷씬 종료 후 원본 맵 환경 복구를 위한 백업 테이블
-local originalLightingState = {}
-local originalInstances = {}
-
-local CINEMATIC_FONT = Enum.Font.FredokaOne
-
-local cutsceneData = {
-    {text = "반물사...", subText = "Fling Thingsand People...", color = Color3.fromRGB(130, 130, 130), size = 24, delay = 0.06, hold = 2, effect = "none"},
-    {text = "과거엔  거대하고 명성 높은 게임이었지.", subText = "Once, it was a massive and deeply renowned game.", color = Color3.fromRGB(160, 160, 160), size = 25, delay = 0.05, hold = 2, effect = "none"},
-    {text = "하지만 흐르는 시간 속에서 빛을 잃고 무너져 가고 있었어..", subText = "Yet over time, it lost its light and began to crumble...", color = Color3.fromRGB(140, 120, 120), size = 24, delay = 0.05, hold = 2.5, effect = "none"},
-    {text = "모든 것이 암흑 속에 묻혀버릴 것 같던 바로 그때,", subText = "At that very moment, when all seemed bound for eternal darkness,", color = Color3.fromRGB(180, 180, 180), size = 25, delay = 0.05, hold = 2.5, effect = "shake"},
-    {text = "그 깊은 심연 속에서 한 인물이 모습을 드러냈어. 일명 'Paca'.", subText = "A figure emerged from the deepest abyss. Known simply as 'Paca'.", color = Color3.fromRGB(255, 255, 255), size = 28, delay = 0.04, hold = 3.5, effect = "glitch", image = "rbxassetid://10843431746", imgSize = UDim2.new(0, 200, 0, 200)},
-    {text = "그자의 재능은 지독할 정도로 뛰어났고,\n무너져가던 이 세계를 기초부터 완전하게 재탄생시켰지.", subText = "With terrifyingly absolute talent,\nhe reshaped this fractured world entirely from its foundations.", color = Color3.fromRGB(230, 230, 230), size = 26, delay = 0.04, hold = 3.5, effect = "none"},
-    {text = "그 압도적인 힘 덕분에 우리는 비로소 진정한 평화를 맞이할 수 있었어.", subText = "Under that overwhelming power, we finally found true sanctuary.", color = Color3.fromRGB(200, 230, 200), size = 26, delay = 0.05, hold = 3, effect = "none"},
-    {text = "그리고 지금.. 오랫동안 닫혀있던 그 거대한 막을 다시 열어보려고 해.", subText = "And now... we prepare to unveil the massive curtain that remained sealed for so long.", color = Color3.fromRGB(255, 255, 255), size = 27, delay = 0.05, hold = 3, effect = "shake"},
-    {text = "일반적인 자들은 감히 상상조차 하지 못할", subText = "Beyond the wildest dreams of ordinary men,", color = Color3.fromRGB(210, 210, 210), size = 25, delay = 0.06, hold = 2, effect = "none"},
-    {text = "차원이 다른 새로운 세계와..", subText = "A brand new realm of a whole different tier...", color = Color3.fromRGB(240, 240, 240), size = 28, delay = 0.05, hold = 2.5, effect = "none"},
-    {text = "완벽에 가까운 구조적 조화.", subText = "An architectural harmony close to sheer perfection.", color = Color3.fromRGB(255, 255, 255), size = 32, delay = 0.07, hold = 3, effect = "glow"},
-    {text = "새로운 시대, 시작의 音樂이 들려오는구나..", subText = "A new dawn rises, and the music of the beginning echoes...", color = Color3.fromRGB(255, 255, 255), size = 30, delay = 0.05, hold = 4, effect = "rainbow", image = "rbxassetid://6073173121", imgSize = UDim2.new(0, 300, 0, 300)}
-}
-
-local songLyrics = {
-    {text = "잃어버린 시간의 조각들이 다시 맞춰지기 시작할 때,", delay = 3.5},
-    {text = "우리가 서 있는 이 대지는 새로운 주인을 맞이하리라.", delay = 3.5},
-    {text = "그 누구도 범접할 수 없었던 심연의 기술적 진보,", delay = 3.8},
-    {text = "무너진 허브의 잔해 위로 솟아오른 웅장한 아키텍처.", delay = 4.0},
-    {text = "오래된 시스템의 경계가 허물어지고 새로운 코드가 요동친다.", delay = 3.8},
-    {text = "정체된 세계를 비웃듯, 완벽한 최적화가 온몸을 감싸며 흐르니,", delay = 4.2},
-    {text = "그 누구도 이 거대한 흐름을 거스르거나 멈추지 못할 것이다.", delay = 3.6},
-    {text = "기억하라, 암흑기 속에서 구원을 노래했던 자를.", delay = 3.5},
-    {text = "찬란하게 빛나던 영광의 정점은 이제 시작일 뿐이니.", delay = 4.2},
-    {text = "어둠 속에 봉인되었던 절대적인 권한이 마침내 깨어나고,", delay = 3.9},
-    {text = "눈앞에 펼쳐지는 왜곡된 물리 법칙조차 지배 아래 굴복하리라.", delay = 4.3},
-    {text = "혼돈으로 가득했던 전장은 이제 그의 손끝에서 재정의된다.", delay = 3.8},
-    {text = "의심의 벽을 깨부수고 도래한 완전무결의 조화 속에서,", delay = 4.5},
-    {text = "우리는 끝없는 세계선을 향해 전진한다.", delay = 3.5},
-    {text = "보거라, 마침내 완성된 파카허브의 위대한 연대기를.", delay = 6.0}
-}
-
--- [변경] 요청하신 타이핑 효과음 ID로 교체
-local typeSound = Instance.new("Sound")
-typeSound.SoundId = "rbxassetid://6895079853" 
-typeSound.Volume = 0.35
-typeSound.PlaybackSpeed = 1.0
-typeSound.Parent = SoundService
-
-local function dualTypeWrite(mainLabel, subLabel, mainText, subText, delayTime)
-    mainLabel.Text = ""
-    subLabel.Text = ""
-    
-    local maxLen = math.max(#mainText, #subText)
-    local playedSound = false
-    
-    for i = 1, maxLen do
-        if isSkipped then break end
-        
-        playedSound = false
-        if i <= #mainText then
-            mainLabel.Text = string.sub(mainText, 1, i)
-            if string.sub(mainText, i, i) ~= " " then playedSound = true end
-        end
-        
-        if i <= #subText then
-            subLabel.Text = string.sub(subText, 1, i)
-            if string.sub(subText, i, i) ~= " " then playedSound = true end
-        end
-        
-        if playedSound then
-            typeSound.TimePosition = 0
-            pcall(function() typeSound:Play() end)
-        end
-        task.wait(delayTime or 0.04)
-    end
-end
-
-local function typeWrite(textLabel, text, delayTime)
-    textLabel.Text = ""
-    for i = 1, #text do
-        if isSkipped then break end
-        textLabel.Text = string.sub(text, 1, i)
-        if string.sub(text, i, i) ~= " " then
-            typeSound.TimePosition = 0
-            pcall(function() typeSound:Play() end)
-        end
-        task.wait(delayTime or 0.04)
-    end
-end
-
-local function applyCinematicSkybox()
-    local currentSky = Lighting:FindFirstChildOfClass("Sky")
-    if currentSky then
-        originalSkybox.SkyboxBk = currentSky.SkyboxBk
-        originalSkybox.SkyboxDn = currentSky.SkyboxDn
-        originalSkybox.SkyboxFt = currentSky.SkyboxFt
-        originalSkybox.SkyboxLf = currentSky.SkyboxLf
-        originalSkybox.SkyboxRt = currentSky.SkyboxRt
-        originalSkybox.SkyboxUp = currentSky.SkyboxUp
-        
-        currentSky.SkyboxBk = "rbxassetid://12064112"
-        currentSky.SkyboxDn = "rbxassetid://12064115"
-        currentSky.SkyboxFt = "rbxassetid://12064124"
-        currentSky.SkyboxLf = "rbxassetid://12064127"
-        currentSky.SkyboxRt = "rbxassetid://12064131"
-        currentSky.SkyboxUp = "rbxassetid://12064137"
-    else
-        local newSky = Instance.new("Sky")
-        newSky.Name = "PacaCinematicSky"
-        newSky.SkyboxBk = "rbxassetid://12064112"
-        newSky.SkyboxDn = "rbxassetid://12064115"
-        newSky.SkyboxFt = "rbxassetid://12064124"
-        newSky.SkyboxLf = "rbxassetid://12064127"
-        newSky.SkyboxRt = "rbxassetid://12064131"
-        newSky.SkyboxUp = "rbxassetid://12064137"
-        newSky.Parent = Lighting
-    end
-end
-
-local function restoreSkybox()
-    local currentSky = Lighting:FindFirstChildOfClass("Sky")
-    if currentSky then
-        if originalSkybox.SkyboxBk then
-            currentSky.SkyboxBk = originalSkybox.SkyboxBk
-            currentSky.SkyboxDn = originalSkybox.SkyboxDn
-            currentSky.SkyboxFt = originalSkybox.SkyboxFt
-            currentSky.SkyboxLf = originalSkybox.SkyboxLf
-            currentSky.SkyboxRt = originalSkybox.SkyboxRt
-            currentSky.SkyboxUp = originalSkybox.SkyboxUp
-        else
-            if currentSky.Name == "PacaCinematicSky" then currentSky:Destroy() end
-        end
-    end
-    originalSkybox = {}
-end
-
--- [추가] 원본 맵 조명 속성 및 이펙트 백업 함수
-local function backupOriginalLighting()
-    originalLightingState = {
-        Ambient = Lighting.Ambient,
-        Brightness = Lighting.Brightness,
-        ColorShift_Bottom = Lighting.ColorShift_Bottom,
-        ColorShift_Top = Lighting.ColorShift_Top,
-        EnvironmentDiffuseScale = Lighting.EnvironmentDiffuseScale,
-        EnvironmentSpecularScale = Lighting.EnvironmentSpecularScale,
-        GlobalShadows = Lighting.GlobalShadows,
-        OutdoorAmbient = Lighting.OutdoorAmbient,
-        ShadowSoftness = Lighting.ShadowSoftness,
-        Technology = Lighting.Technology,
-        ClockTime = Lighting.ClockTime,
-        GeographicLatitude = Lighting.GeographicLatitude,
-        FogColor = Lighting.FogColor,
-        FogEnd = Lighting.FogEnd,
-        FogStart = Lighting.FogStart,
-    }
-
-    originalInstances = {}
-    for _, obj in ipairs(Lighting:GetChildren()) do
-        if obj:IsA("Atmosphere") or obj:IsA("Sky") or obj:IsA("BloomEffect") or obj:IsA("ColorCorrectionEffect") or obj:IsA("SunRaysEffect") then
-            originalInstances[obj.Name] = obj:Clone()
-        end
-    end
-end
-
--- [변경] 기존 무지개 조명 대신 요청하신 Cloudy 배경 환경 적용
-local function startRainbowLighting()
-    if isSkipped then return end
-    
-    Lighting.Ambient = Color3.fromRGB(0, 0, 0)
-    Lighting.Brightness = 5.63
-    Lighting.ColorShift_Bottom = Color3.fromRGB(0, 0, 0)
-    Lighting.ColorShift_Top = Color3.fromRGB(207, 114, 0)
-    Lighting.EnvironmentDiffuseScale = 0.583
-    Lighting.EnvironmentSpecularScale = 1
-    Lighting.GlobalShadows = true
-    Lighting.OutdoorAmbient = Color3.fromRGB(89, 68, 47)
-    Lighting.ShadowSoftness = 0.04
-    Lighting.Technology = Enum.Technology.Future
-    Lighting.ClockTime = 17.629
-    Lighting.GeographicLatitude = 21.589
-    Lighting.FogColor = Color3.fromRGB(146, 208, 255)
-    Lighting.FogEnd = 3000
-    Lighting.FogStart = 300
-
-    local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere") or Instance.new("Atmosphere", Lighting)
-    atmosphere.Density = 0.357
-    atmosphere.Offset = 0
-    atmosphere.Color = Color3.fromRGB(165, 165, 165)
-    atmosphere.Decay = Color3.fromRGB(16, 16, 16)
-    atmosphere.Glare = 0.21
-    atmosphere.Haze = 1.46
-
-    local sky = Lighting:FindFirstChildOfClass("Sky") or Instance.new("Sky", Lighting)
-    sky.CelestialBodiesShown = true
-    sky.MoonAngularSize = 1.5
-    sky.MoonTextureId = "rbxassetid://1075087760"
-    sky.SkyboxBk = "rbxassetid://2177969403"
-    sky.SkyboxDn = "rbxassetid://2177972406"
-    sky.SkyboxFt = "rbxassetid://2177970251"
-    sky.SkyboxLf = "rbxassetid://2177969836"
-    sky.SkyboxRt = "rbxassetid://2177968823"
-    sky.SkyboxUp = "rbxassetid://2177971305"
-    sky.StarCount = 500
-    sky.SunAngularSize = 3
-    sky.SunTextureId = "rbxasset://sky/sun.jpg"
-
-    local bloom = Lighting:FindFirstChildOfClass("BloomEffect") or Instance.new("BloomEffect", Lighting)
-    bloom.Intensity = 1
-    bloom.Size = 90
-    bloom.Threshold = 2
-
-    local cc = Lighting:FindFirstChildOfClass("ColorCorrectionEffect") or Instance.new("ColorCorrectionEffect", Lighting)
-    cc.Brightness = 0.04
-    cc.Contrast = 0.15
-    cc.Saturation = 0.2
-    cc.TintColor = Color3.fromRGB(255, 255, 255)
-
-    local sunrays = Lighting:FindFirstChildOfClass("SunRaysEffect") or Instance.new("SunRaysEffect", Lighting)
-    sunrays.Intensity = 0.004
-    sunrays.Spread = 0.167
-end
-
-local function clearAllEffects()
-    rainbowActive = false
-    restoreSkybox()
-    
-    if introSound then
-        pcall(function() introSound:Stop() end)
-        introSound:Destroy()
-        introSound = nil
-    end
-    
-    if currentSound then
-        pcall(function() currentSound:Stop() end)
-        currentSound:Destroy()
-        currentSound = nil
-    end
-    
-    for _, tween in ipairs(lightingTweens) do
-        if tween.PlaybackState == Enum.TweenStatus.Playing then
-            tween:Cancel()
-        end
-    end
-    lightingTweens = {}
-    
-    -- [추가] 백업한 원래 맵의 조명 환경으로 완전 원상복구
-    if originalLightingState.Ambient then
-        for prop, val in pairs(originalLightingState) do
-            pcall(function() Lighting[prop] = val end)
-        end
-
-        for _, obj in ipairs(Lighting:GetChildren()) do
-            if obj:IsA("Atmosphere") or obj:IsA("Sky") or obj:IsA("BloomEffect") or obj:IsA("ColorCorrectionEffect") or obj:IsA("SunRaysEffect") then
-                obj:Destroy()
-            end
-        end
-
-        for _, origObj in pairs(originalInstances) do
-            origObj:Clone().Parent = Lighting
-        end
-    else
-        Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-        Lighting.Ambient = Color3.fromRGB(0, 0, 0)
-    end
-    
-    if activeScreenGui then
-        activeScreenGui:Destroy()
-        activeScreenGui = nil
-    end
-    
-    isCutscenePlaying = false
-end
-
-local function PlayCutscene()
-    isCutscenePlaying = true
-    isSkipped = false
-    
-    -- 컷씬 연출 전 원래 맵 조명 값 백업
-    backupOriginalLighting()
-
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "PacaCutsceneGui"
-    screenGui.IgnoreGuiInset = true
-    screenGui.DisplayOrder = 999
-    screenGui.Parent = playerGui
-    activeScreenGui = screenGui
-
-    local blackFrame = Instance.new("Frame")
-    blackFrame.Size = UDim2.new(1, 0, 1, 0)
-    blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    blackFrame.BorderSizePixel = 0
-    blackFrame.Parent = screenGui
-
-    -- [추가] 암전 상태일 때 재생될 1차 대사 음원 설정 (조금 크게 로드)
-    introSound = Instance.new("Sound")
-    introSound.SoundId = "rbxassetid://1838706588"
-    introSound.Volume = 0.6
-    introSound.Parent = SoundService
-    pcall(function() introSound:Play() end)
-
-    local effectImage = Instance.new("ImageLabel")
-    effectImage.AnchorPoint = Vector2.new(0.5, 0.5)
-    effectImage.Position = UDim2.new(0.5, 0, 0.4, 0)
-    effectImage.BackgroundTransparency = 1
-    effectImage.ImageTransparency = 1
-    effectImage.Parent = blackFrame
-
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(0.8, 0, 0.12, 0)
-    textLabel.Position = UDim2.new(0.1, 0, 0.62, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Font = CINEMATIC_FONT
-    textLabel.TextWrapped = true
-    textLabel.TextTransparency = 1
-    textLabel.Text = ""
-    textLabel.Parent = blackFrame
-
-    local textStroke = Instance.new("UIStroke")
-    textStroke.Color = Color3.fromRGB(0, 0, 0)
-    textStroke.Thickness = 2.5
-    textStroke.Transparency = 1
-    textStroke.Parent = textLabel
-
-    local subTextLabel = Instance.new("TextLabel")
-    subTextLabel.Size = UDim2.new(0.8, 0, 0.08, 0)
-    subTextLabel.Position = UDim2.new(0.1, 0, 0.74, 0)
-    subTextLabel.BackgroundTransparency = 1
-    subTextLabel.Font = Enum.Font.GothamMedium
-    subTextLabel.TextSize = 14
-    subTextLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    subTextLabel.TextWrapped = true
-    subTextLabel.TextTransparency = 1
-    subTextLabel.Text = ""
-    subTextLabel.Parent = blackFrame
-
-    local subTextStroke = Instance.new("UIStroke")
-    subTextStroke.Color = Color3.fromRGB(0, 0, 0)
-    subTextStroke.Thickness = 1.5
-    subTextStroke.Transparency = 1
-    subTextStroke.Parent = subTextLabel
-
-    local skipButton = Instance.new("TextButton")
-    skipButton.Size = UDim2.new(0, 100, 0, 32)
-    skipButton.Position = UDim2.new(1, -120, 1, -50)
-    skipButton.BackgroundTransparency = 1
-    skipButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    skipButton.TextTransparency = 0.5
-    skipButton.Font = Enum.Font.GothamMedium
-    skipButton.TextSize = 13
-    skipButton.Text = "SKIP"
-    skipButton.ZIndex = 1005
-    skipButton.Parent = screenGui
-
-    local skipStroke = Instance.new("UIStroke")
-    skipStroke.Color = Color3.fromRGB(255, 255, 255)
-    skipStroke.Thickness = 1
-    skipStroke.Transparency = 0.6
-    skipStroke.Parent = skipButton
-
-    skipButton.MouseEnter:Connect(function()
-        TweenService:Create(skipButton, TweenInfo.new(0.2), {TextTransparency = 0}):Play()
-        TweenService:Create(skipStroke, TweenInfo.new(0.2), {Transparency = 0.2}):Play()
-    end)
-    skipButton.MouseLeave:Connect(function()
-        TweenService:Create(skipButton, TweenInfo.new(0.2), {TextTransparency = 0.5}):Play()
-        TweenService:Create(skipStroke, TweenInfo.new(0.2), {Transparency = 0.6}):Play()
-    end)
-
-    skipButton.MouseButton1Click:Connect(function()
-        isSkipped = true
-        clearAllEffects()
-    end)
-
-    task.wait(1.2)
-
-    for idx, data in ipairs(cutsceneData) do
-        if isSkipped then return end
-        
-        textLabel.TextColor3 = data.color
-        textLabel.TextSize = data.size
-        
-        local targetTextY = 0.62
-        local targetSubY = 0.74
-        
-        textLabel.Position = UDim2.new(0.1, 0, targetTextY + 0.02, 0)
-        subTextLabel.Position = UDim2.new(0.1, 0, targetSubY + 0.02, 0)
-        
-        TweenService:Create(textLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0, Position = UDim2.new(0.1, 0, targetTextY, 0)}):Play()
-        TweenService:Create(textStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
-        
-        TweenService:Create(subTextLabel, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {TextTransparency = 0.2, Position = UDim2.new(0.1, 0, targetSubY, 0)}):Play()
-        TweenService:Create(subTextStroke, TweenInfo.new(0.4), {Transparency = 0.2}):Play()
-        
-        if data.image then
-            effectImage.Image = data.image
-            effectImage.Size = data.imgSize or UDim2.new(0, 200, 0, 200)
-            effectImage.Position = UDim2.new(0.5, 0, 0.33, 0)
-            TweenService:Create(effectImage, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {ImageTransparency = 0.1, Position = UDim2.new(0.5, 0, 0.35, 0)}):Play()
-        end
-
-        local effectActive = true
-        if data.effect == "rainbow" then
-            task.spawn(function()
-                local textHue = 0
-                while effectActive and not isSkipped do
-                    local rainbowColor = Color3.fromHSV(textHue, 0.65, 1)
-                    textLabel.TextColor3 = rainbowColor
-                    textHue = textHue + (2/360)
-                    if textHue >= 1 then textHue = 0 end
-                    task.wait(0.02)
-                end
-            end)
-        elseif data.effect == "shake" then
-            task.spawn(function()
-                while effectActive and not isSkipped do
-                    local offsetX = math.random(-2, 2)
-                    local offsetY = math.random(-2, 2)
-                    textLabel.Position = UDim2.new(0.1, offsetX, targetTextY, offsetY)
-                    subTextLabel.Position = UDim2.new(0.1, offsetX, targetSubY, offsetY)
-                    task.wait(0.03)
-                end
-                textLabel.Position = UDim2.new(0.1, 0, targetTextY, 0)
-                subTextLabel.Position = UDim2.new(0.1, 0, targetSubY, 0)
-            end)
-        elseif data.effect == "glitch" then
-            task.spawn(function()
-                while effectActive and not isSkipped do
-                    local trans = math.random(0, 3) * 0.1
-                    textLabel.TextTransparency = trans
-                    subTextLabel.TextTransparency = trans + 0.2
-                    if data.image then effectImage.ImageTransparency = trans + 0.1 end
-                    task.wait(0.05)
-                end
-                textLabel.TextTransparency = 0
-                subTextLabel.TextTransparency = 0.2
-                if data.image then effectImage.ImageTransparency = 0.1 end
-            end)
-        end
-
-        dualTypeWrite(textLabel, subTextLabel, data.text, data.subText, data.delay)
-        
-        local totalHoldFrames = math.floor(data.hold / 0.05)
-        for _ = 1, totalHoldFrames do
-            if isSkipped then effectActive = false return end
-            task.wait(0.05)
-        end
-        
-        effectActive = false
-        if isSkipped then return end
-        
-        local textFade = TweenService:Create(textLabel, TweenInfo.new(0.35), {TextTransparency = 1, Position = UDim2.new(0.1, 0, targetTextY - 0.02, 0)})
-        TweenService:Create(textStroke, TweenInfo.new(0.35), {Transparency = 1}):Play()
-        
-        TweenService:Create(subTextLabel, TweenInfo.new(0.35), {TextTransparency = 1, Position = UDim2.new(0.1, 0, targetSubY - 0.02, 0)}):Play()
-        TweenService:Create(subTextStroke, TweenInfo.new(0.35), {Transparency = 1}):Play()
-        
-        textFade:Play()
-        
-        if data.image then
-            TweenService:Create(effectImage, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {ImageTransparency = 1, Position = UDim2.new(0.5, 0, 0.37, 0)}):Play()
-        end
-        
-        textFade.Completed:Wait()
-        task.wait(0.3)
-    end
-
-    if isSkipped then return end
-
-    if skipButton then
-        skipButton:Destroy()
-        skipButton = nil
-    end
-
-    -- [변경] 암전 상태가 끝나고 2차 대사 연출로 넘어갈 때 1차 오디오 전용 중지 및 제거
-    if introSound then
-        pcall(function() introSound:Stop() end)
-        introSound:Destroy()
-        introSound = nil
-    end
-
-    applyCinematicSkybox()
-    startRainbowLighting() -- 여기서 Cloudy 배경이 적용됩니다.
-
-    TweenService:Create(blackFrame, TweenInfo.new(2.0, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {BackgroundTransparency = 1}):Play()
-
-    -- 2차 대사 노래 시작
-    currentSound = Instance.new("Sound")
-    currentSound.SoundId = "rbxassetid://109260605890512"
-    currentSound.Volume = 0.55
-    currentSound.Parent = SoundService
-    pcall(function() currentSound:Play() end)
-
-    local lyricContainer = Instance.new("Frame")
-    lyricContainer.Size = UDim2.new(0, 480, 0, 240)
-    lyricContainer.Position = UDim2.new(1, -510, 0, 60)
-    lyricContainer.BackgroundTransparency = 1
-    lyricContainer.Parent = screenGui
-
-    local lyricLayout = Instance.new("UIListLayout")
-    lyricLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    lyricLayout.Padding = UDim.new(0, 6)
-    lyricLayout.Parent = lyricContainer
-
-    local activeLyricsList = {}
-
-    task.spawn(function()
-        for _, songData in ipairs(songLyrics) do
-            if isSkipped then return end
-            
-            if #activeLyricsList >= 4 then
-                local oldLabel = table.remove(activeLyricsList, 1)
-                if oldLabel and oldLabel.Parent then
-                    task.spawn(function()
-                        local stroke = oldLabel:FindFirstChildOfClass("UIStroke")
-                        if stroke then TweenService:Create(stroke, TweenInfo.new(0.5), {Transparency = 1}):Play() end
-                        local f = TweenService:Create(oldLabel, TweenInfo.new(0.5), {TextTransparency = 1})
-                        f:Play()
-                        f.Completed:Wait()
-                        oldLabel:Destroy()
-                    end)
-                end
-            end
-
-            local lyricLabel = Instance.new("TextLabel")
-            lyricLabel.Size = UDim2.new(1, 0, 0, 28)
-            lyricLabel.BackgroundTransparency = 1
-            lyricLabel.Font = CINEMATIC_FONT
-            lyricLabel.TextSize = 17
-            lyricLabel.TextColor3 = Color3.fromRGB(245, 245, 245)
-            lyricLabel.TextXAlignment = Enum.TextXAlignment.Right
-            lyricLabel.TextTransparency = 1
-            lyricLabel.Text = ""
-            lyricLabel.LayoutOrder = math.floor(os.clock() * 1000)
-            lyricLabel.Parent = lyricContainer
-            
-            local lyricStroke = Instance.new("UIStroke")
-            lyricStroke.Color = Color3.fromRGB(0, 0, 0)
-            lyricStroke.Thickness = 1.8
-            lyricStroke.Transparency = 1
-            lyricStroke.Parent = lyricLabel
-
-            table.insert(activeLyricsList, lyricLabel)
-
-            TweenService:Create(lyricLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
-            TweenService:Create(lyricStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
-            
-            typeWrite(lyricLabel, songData.text, 0.03)
-
-            local frames = math.floor(songData.delay / 0.05)
-            for _ = 1, frames do
-                if isSkipped then return end
-                task.wait(0.05)
-            end
-        end
-
-        for _, label in ipairs(activeLyricsList) do
-            if label and label.Parent then
-                local s = label:FindFirstChildOfClass("UIStroke")
-                if s then TweenService:Create(s, TweenInfo.new(0.6), {Transparency = 1}):Play() end
-                TweenService:Create(label, TweenInfo.new(0.6), {TextTransparency = 1}):Play()
-            end
-        end
-    end)
-
-    currentSound.Ended:Connect(function()
-        if not isSkipped then
-            clearAllEffects()
-        end
-    end)
-end
-
-local function CreateSelectionUI()
-    local startGui = Instance.new("ScreenGui")
-    startGui.Name = "PacaStartGui"
-    startGui.IgnoreGuiInset = true
-    startGui.DisplayOrder = 1000
-    startGui.Parent = playerGui
-
-    local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 380, 0, 190)
-    mainFrame.Position = UDim2.new(0.5, -190, 0.38, -95)
-    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    mainFrame.BorderSizePixel = 0
-    mainFrame.ClipsDescendants = true
-    mainFrame.Parent = startGui
-
-    local uiCorner = Instance.new("UICorner")
-    uiCorner.CornerRadius = UDim.new(0, 14)
-    uiCorner.Parent = mainFrame
-
-    local uiStroke = Instance.new("UIStroke")
-    uiStroke.Color = Color3.fromRGB(45, 45, 45)
-    uiStroke.Thickness = 2
-    uiStroke.Parent = mainFrame
-
-    local titleLabel = Instance.new("TextLabel")
-    titleLabel.Size = UDim2.new(1, 0, 0, 60)
-    titleLabel.Position = UDim2.new(0, 0, 0, 25)
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.Text = "파카허브의 고대 기록(대사 지피티 픽)"
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLabel.Font = CINEMATIC_FONT
-    titleLabel.TextSize = 20
-    titleLabel.Parent = mainFrame
-
-    local yesButton = Instance.new("TextButton")
-    yesButton.Size = UDim2.new(0, 140, 0, 48)
-    yesButton.Position = UDim2.new(0, 35, 0, 105)
-    yesButton.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-    yesButton.Text = "보기"
-    yesButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    yesButton.Font = CINEMATIC_FONT
-    yesButton.TextSize = 16
-    yesButton.BorderSizePixel = 0
-    yesButton.Parent = mainFrame
-
-    local yesCorner = Instance.new("UICorner")
-    yesCorner.CornerRadius = UDim.new(0, 10)
-    yesCorner.Parent = yesButton
-
-    local noButton = Instance.new("TextButton")
-    noButton.Size = UDim2.new(0, 140, 0, 48)
-    noButton.Position = UDim2.new(1, -175, 0, 105)
-    noButton.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
-    noButton.Text = "안보기"
-    noButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    noButton.Font = CINEMATIC_FONT
-    noButton.TextSize = 16
-    noButton.BorderSizePixel = 0
-    noButton.Parent = mainFrame
-
-    local noCorner = Instance.new("UICorner")
-    noCorner.CornerRadius = UDim.new(0, 10)
-    noCorner.Parent = noButton
-
-    local function applyHoverEffect(button, baseColor, hoverColor)
-        button.MouseEnter:Connect(function()
-            TweenService:Create(button, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundColor3 = hoverColor}):Play()
-        end)
-    end
-    applyHoverEffect(yesButton, Color3.fromRGB(46, 204, 113), Color3.fromRGB(39, 174, 96))
-    applyHoverEffect(noButton, Color3.fromRGB(231, 76, 60), Color3.fromRGB(192, 57, 43))
-
-    yesButton.MouseButton1Click:Connect(function()
-        local fadeOut = TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-        TweenService:Create(uiStroke, TweenInfo.new(0.25), {Transparency = 1}):Play()
-        TweenService:Create(titleLabel, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-        TweenService:Create(yesButton, TweenInfo.new(0.2), {BackgroundTransparency = 1, TextTransparency = 1}):Play()
-        TweenService:Create(noButton, TweenInfo.new(0.2), {BackgroundTransparency = 1, TextTransparency = 1}):Play()
-        
-        fadeOut:Play()
-        fadeOut.Completed:Connect(function()
-            startGui:Destroy()
-            task.spawn(PlayCutscene)
-        end)
-    end)
-
-    noButton.MouseButton1Click:Connect(function()
-        local fadeOut = TweenService:Create(mainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-        TweenService:Create(uiStroke, TweenInfo.new(0.25), {Transparency = 1}):Play()
-        TweenService:Create(titleLabel, TweenInfo.new(0.2), {TextTransparency = 1}):Play()
-        TweenService:Create(yesButton, TweenInfo.new(0.2), {BackgroundTransparency = 1, TextTransparency = 1}):Play()
-        TweenService:Create(noButton, TweenInfo.new(0.2), {BackgroundTransparency = 1, TextTransparency = 1}):Play()
-        
-        fadeOut:Play()
-        fadeOut.Completed:Connect(function()
-            startGui:Destroy()
-        end)
-    end)
-end
-
-task.spawn(CreateSelectionUI)
 
  loadstring(game:HttpGet("https://raw.githubusercontent.com/yunjunsfdg-a11y/12345/main/papacaca-4.txt"))()
