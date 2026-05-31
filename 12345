@@ -1,28 +1,22 @@
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
 
-
 local AllowedUsers = {
     [2932138780] = true,
-    [10472996475] = true
+    [10472996475] = true,
+     [4396960314] = true
 }
 
-
 if not AllowedUsers[LocalPlayer.UserId] then
-
     LocalPlayer:Kick("\n[Fuck, get out, you idiot. ]\n not.\n get out.")
-    
-    
     task.wait(0.5)
     while true do 
-    
         error("Unauthorized User - Script Terminated") 
     end
 end
+
 task.spawn(function()
     local HttpService = game:GetService("HttpService")
-    
     local AllowedDomains = {
         "roblox.com",
         "githubusercontent.com",
@@ -30,17 +24,12 @@ task.spawn(function()
         "pastebin.com"
     }
 
-    
     local function isSafeUrl(url)
         if not url then return false end
         local lowerUrl = string.lower(url)
-        
-        
         if string.find(lowerUrl, "discord.com/api/webhooks") or string.find(lowerUrl, "hooks.slack.com") then
             return false
         end
-        
-        
         for _, domain in pairs(AllowedDomains) do
             if string.find(lowerUrl, domain) then
                 return true
@@ -49,7 +38,6 @@ task.spawn(function()
         return false
     end
 
-    
     local oldPostAsync
     oldPostAsync = hookfunction(HttpService.PostAsync, function(self, url, data, ...)
         if not isSafeUrl(url) then
@@ -72,8 +60,8 @@ task.spawn(function()
 
     print("[Security Master] Malicious logger and web hook blocking engines have been activated..")
 end)
-task.spawn(function()
 
+task.spawn(function()
     local CoreGui = game:GetService("CoreGui")
     local TweenService = game:GetService("TweenService")
     local RunService = game:GetService("RunService")
@@ -93,14 +81,12 @@ task.spawn(function()
     end
 
     local function PlaySound(id, volume, speed)
-
         local s = Instance.new("Sound")
         s.SoundId = "rbxassetid://" .. id
         s.Volume = volume or 1
         s.PlaybackSpeed = speed or 1
         s.Parent = SoundService
         s:Play()
-
         Debris:AddItem(s, 2)
     end
 
@@ -194,94 +180,43 @@ task.spawn(function()
     TweenService:Create(
         Container,
         TweenInfo.new(0.7, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {
-            Position = UDim2.new(0, 20, 0, 25)
-        }
+        {Position = UDim2.new(0, 20, 0, 25)}
     ):Play()
 
     task.delay(0.7, function()
-
-        local t1 = TweenService:Create(
-            Container,
-            TweenInfo.new(0.08),
-            {Position = UDim2.new(0, 30, 0, 25)}
-        )
-
-        local t2 = TweenService:Create(
-            Container,
-            TweenInfo.new(0.08),
-            {Position = UDim2.new(0, 15, 0, 25)}
-        )
-
-        local t3 = TweenService:Create(
-            Container,
-            TweenInfo.new(0.08),
-            {Position = UDim2.new(0, 20, 0, 25)}
-        )
-
+        local t1 = TweenService:Create(Container, TweenInfo.new(0.08), {Position = UDim2.new(0, 30, 0, 25)})
+        local t2 = TweenService:Create(Container, TweenInfo.new(0.08), {Position = UDim2.new(0, 15, 0, 25)})
+        local t3 = TweenService:Create(Container, TweenInfo.new(0.08), {Position = UDim2.new(0, 20, 0, 25)})
         t1:Play()
         t1.Completed:Wait()
-
         t2:Play()
         t2.Completed:Wait()
-
         t3:Play()
     end)
 
     task.wait(0.4)
 
-    TweenService:Create(
-        Container,
-        TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-        {
-            Size = UDim2.new(0, 340, 0, 120)
-        }
-    ):Play()
-
-    TweenService:Create(DisplayFrame, TweenInfo.new(0.4), {
-        BackgroundTransparency = 0.35
-    }):Play()
-
-    TweenService:Create(BoxStroke, TweenInfo.new(0.4), {
-        Transparency = 0
-    }):Play()
-
-    TweenService:Create(ContentLabel, TweenInfo.new(0.4), {
-        TextTransparency = 0
-    }):Play()
-
-    TweenService:Create(AlertLabel, TweenInfo.new(0.4), {
-        TextTransparency = 0
-    }):Play()
-
-    TweenService:Create(ExitBtn, TweenInfo.new(0.4), {
-        TextTransparency = 0
-    }):Play()
+    TweenService:Create(Container, TweenInfo.new(0.45, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 340, 0, 120)}):Play()
+    TweenService:Create(DisplayFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0.35}):Play()
+    TweenService:Create(BoxStroke, TweenInfo.new(0.4), {Transparency = 0}):Play()
+    TweenService:Create(ContentLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(AlertLabel, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
+    TweenService:Create(ExitBtn, TweenInfo.new(0.4), {TextTransparency = 0}):Play()
 
     local Sentences = {
-        "Congratulations, you deserve to write the script.
-"It's still in the alpha stage and has many errors."
-"There are also things that don't apply to mobile."
-
-Have fun playing. :)"
+        "Congratulations, you deserve to write the script.",
+        "It's still in the alpha stage and has many errors.",
+        "There are also things that don't apply to mobile.",
+        "Have fun playing. :)"
     }
 
     local currentIdx = 1
 
     local function TypeText(text)
-
         ContentLabel.Text = ""
-
         for i = 1, #text do
-
             ContentLabel.Text = string.sub(text, 1, i)
-
-            PlaySound(
-                6895079853,
-                0.25,
-                math.random(98,102)/100
-            )
-
+            PlaySound(6895079853, 0.25, math.random(98,102)/100)
             task.wait(0.025)
         end
     end
@@ -289,148 +224,60 @@ Have fun playing. :)"
     TypeText(Sentences[currentIdx])
 
     task.spawn(function()
-
         while task.wait(3.5) do
-
             if not CustomGui.Parent then
                 break
             end
 
             PlaySound(6026984224, 0.6)
 
-            TweenService:Create(
-                ContentLabel,
-                TweenInfo.new(0.25),
-                {
-                    TextTransparency = 1,
-                    Position = UDim2.new(0, 25, 0, 0)
-                }
-            ):Play()
-
+            TweenService:Create(ContentLabel, TweenInfo.new(0.25), {TextTransparency = 1, Position = UDim2.new(0, 25, 0, 0)}):Play()
             task.wait(0.25)
 
             currentIdx = currentIdx % #Sentences + 1
-
             ContentLabel.Position = UDim2.new(0, -10, 0, 0)
 
-            TweenService:Create(
-                ContentLabel,
-                TweenInfo.new(0.25),
-                {
-                    TextTransparency = 0,
-                    Position = UDim2.new(0, 10, 0, 0)
-                }
-            ):Play()
-
+            TweenService:Create(ContentLabel, TweenInfo.new(0.25), {TextTransparency = 0, Position = UDim2.new(0, 10, 0, 0)}):Play()
             TypeText(Sentences[currentIdx])
         end
     end)
 
     local hue = 0
-
     RunService.RenderStepped:Connect(function(delta)
-
         hue = (hue + delta * 0.12) % 1
-
-        ContentLabel.TextColor3 = Color3.fromHSV(
-            hue,
-            0.7,
-            1
-        )
-
-        UIStroke.Color = Color3.fromHSV(
-            hue,
-            0.6,
-            1
-        )
+        ContentLabel.TextColor3 = Color3.fromHSV(hue, 0.7, 1)
+        UIStroke.Color = Color3.fromHSV(hue, 0.6, 1)
     end)
 
     ExitBtn.MouseButton1Click:Connect(function()
-
         PlaySound(27697743, 0.9)
-
-        TweenService:Create(
-            Container,
-            TweenInfo.new(0.35),
-            {
-                Position = UDim2.new(0, -400, 0, 25),
-                BackgroundTransparency = 1
-            }
-        ):Play()
+        TweenService:Create(Container, TweenInfo.new(0.35), {Position = UDim2.new(0, -400, 0, 25), BackgroundTransparency = 1}):Play()
 
         for _, child in pairs(Container:GetDescendants()) do
-
             if child:IsA("TextLabel") or child:IsA("TextButton") then
-
-                TweenService:Create(
-                    child,
-                    TweenInfo.new(0.25),
-                    {
-                        TextTransparency = 1
-                    }
-                ):Play()
-
+                TweenService:Create(child, TweenInfo.new(0.25), {TextTransparency = 1}):Play()
             elseif child:IsA("Frame") then
-
-                TweenService:Create(
-                    child,
-                    TweenInfo.new(0.25),
-                    {
-                        BackgroundTransparency = 1
-                    }
-                ):Play()
-
+                TweenService:Create(child, TweenInfo.new(0.25), {BackgroundTransparency = 1}):Play()
             elseif child:IsA("UIStroke") then
-
-                TweenService:Create(
-                    child,
-                    TweenInfo.new(0.25),
-                    {
-                        Transparency = 1
-                    }
-                ):Play()
-
+                TweenService:Create(child, TweenInfo.new(0.25), {Transparency = 1}):Play()
             elseif child:IsA("ImageLabel") then
-
-                TweenService:Create(
-                    child,
-                    TweenInfo.new(0.25),
-                    {
-                        ImageTransparency = 1
-                    }
-                ):Play()
+                TweenService:Create(child, TweenInfo.new(0.25), {ImageTransparency = 1}):Play()
             end
         end
 
         task.wait(0.4)
-
         CustomGui:Destroy()
     end)
 
     ExitBtn.MouseEnter:Connect(function()
-
-        TweenService:Create(
-            ExitBtn,
-            TweenInfo.new(0.15),
-            {
-                TextColor3 = Color3.fromRGB(255, 80, 80),
-                Rotation = 90
-            }
-        ):Play()
+        TweenService:Create(ExitBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(255, 80, 80), Rotation = 90}):Play()
     end)
 
     ExitBtn.MouseLeave:Connect(function()
-
-        TweenService:Create(
-            ExitBtn,
-            TweenInfo.new(0.15),
-            {
-                TextColor3 = Color3.fromRGB(140, 130, 150),
-                Rotation = 0
-            }
-        ):Play()
+        TweenService:Create(ExitBtn, TweenInfo.new(0.15), {TextColor3 = Color3.fromRGB(140, 130, 150), Rotation = 0}):Play()
     end)
 end)
 
-
- loadstring(game:HttpGet("https://raw.githubusercontent.com/yunjunsfdg-a11y/12345/main/papacaca-4.txt"))()
+pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/yunjunsfdg-a11y/12345/main/papacaca-4.txt"))()
+end)
